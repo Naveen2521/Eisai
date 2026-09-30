@@ -1,4 +1,4 @@
-using System.Diagnostics;//
+using System.Diagnostics;
 using Eisai.Web.Theme;
 
 var builder = WebApplication.CreateBuilder(args);
