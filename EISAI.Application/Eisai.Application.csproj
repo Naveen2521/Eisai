@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="DTOs\" />
+    <Folder Include="Features\Auth\" />
+    <Folder Include="Features\Country\Commands\DeleteCountry\" />
+    <Folder Include="Features\Country\Commands\SaveCountry\" />
+    <Folder Include="Features\Country\Queries\GetCountries\" />
+    <Folder Include="Features\Country\Queries\GetCountryById\" />
+    <Folder Include="Features\DAR\" />
+    <Folder Include="Features\Dashboard\" />
+    <Folder Include="Features\Notifications\" />
+    <Folder Include="Features\Region\Commands\CreateRegion\" />
+    <Folder Include="Features\Region\Commands\DeleteRegion\" />
+    <Folder Include="Features\Region\Commands\UpdateRegion\" />
+    <Folder Include="Features\Region\Queries\GetRegionById\" />
+    <Folder Include="Features\Region\Queries\GetRegions\" />
+    <Folder Include="Features\Reports\" />
+    <Folder Include="Features\Users\" />
+    <Folder Include="Interfaces\Security\" />
+    <Folder Include="Interfaces\Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
+  </ItemGroup>
+
+</Project>

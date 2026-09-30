@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Create Master";
+    ViewData["ShowHeaderTitle"] = false;
+}
+
+<div class="workspace">
+    <section id="create-panel" class="create-screen">
+        <a class="back-link" asp-action="Index">Back</a>
+        <h2>Create Master</h2>
+        <p class="muted">Give the master a name and prefix, then add the columns. Parent choices stay hidden until this master needs a parent.</p>
+        <form id="create-form" class="stack">
+            <div class="form-card">
+                <div class="grid-2">
+                    <label>Master name <span class="req">*</span>
+                        <input id="master-name" name="masterName" required maxlength="40" placeholder="City" autocomplete="off" />
+                    </label>
+                    <label>Unique id prefix <span class="req">*</span>
+                        <input id="unique-prefix" name="uniqueIdPrefix" required maxlength="10" placeholder="CTY" autocomplete="off" />
+                    </label>
+                </div>
+                <div class="menu-place">
+                    <h3>Where this master appears</h3>
+                    <p class="muted">Save it under a heading and a sub heading. Example: Super Admin Operations, then Location, then City.</p>
+                    <div class="grid-2">
+                        <label>Heading
+                            <select id="menu-heading-mode">
+                                <option value="existing">Use an existing heading</option>
+                                <option value="new">Create a new heading</option>
+                            </select>
+                        </label>
+                        <label id="menu-heading-existing-wrap">Existing heading
+                            <select id="menu-heading"></select>
+                        </label>
+                        <label id="menu-heading-new-wrap" hidden>New heading
+                            <input id="menu-heading-new" maxlength="80" placeholder="Plant Setup" autocomplete="off" />
+                        </label>
+                    </div>
+                    <div class="grid-2">
+                        <label>Sub heading
+                            <select id="menu-sub-mode">
+                                <option value="existing">Use an existing sub heading</option>
+                                <option value="new">Create a new sub heading</option>
+                            </select>
+                        </label>
+                        <label id="menu-sub-existing-wrap">Existing sub heading
+                            <select id="menu-sub"></select>
+                        </label>
+                        <label id="menu-sub-new-wrap" hidden>New sub heading
+                            <input id="menu-sub-new" maxlength="80" placeholder="Location" autocomplete="off" />
+                        </label>
+                    </div>
+                    <p id="menu-sub-empty" class="muted" hidden>This heading has no sub heading yet. Create a new one.</p>
+                </div>
+                <label class="switch">
+                    <input id="use-parent" type="checkbox" />
+                    <span>This master needs a parent</span>
+                </label>
+                <div id="parent-fields" class="parent-box" hidden>
+                    <div class="grid-3">
+                        <label>Parent master
+                            <select id="parent-name"></select>
+                        </label>
+                        <label class="tick">
+                            <input id="parent-required" type="checkbox" checked />
+                            Required
+                        </label>
+                        <label>When the parent row is deleted
+                            <select id="parent-delete">
+                                <option value="restrict">Keep the parent if children exist</option>
+                                <option value="setnull">Clear the parent link</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p id="parent-empty" class="muted" hidden>Create another master first. A parent must already exist.</p>
+                </div>
+            </div>
+
+            <div class="form-card columns-card">
+                <div class="columns-head">
+                    <div class="columns-title">
+                        <span class="columns-mark" aria-hidden="true"></span>
+                        <div>
+                            <h3>Columns</h3>
+                            <p class="muted">Add and edit columns for this master.</p>
+                        </div>
+                    </div>
+                    <button id="add-column" class="btn" type="button" disabled>+ Add Column</button>
+                </div>
+                <div class="table-wrap">
+                    <table class="column-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Column name</th>
+                                <th>Data type</th>
+                                <th>Length / Precision</th>
+                                <th>Constraints</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="column-rows"></tbody>
+                    </table>
+                </div>
+                <p id="column-hint" class="muted">Fill the current column before adding another.</p>
+            </div>
+            <button class="btn create-submit" type="submit">Create Master</button>
+        </form>
+    </section>
+
+    <section id="detail-panel" class="panel grow" hidden>
+        <div class="panel-head">
+            <div>
+                <a class="back-link" asp-action="Index">Back</a>
+                <h2 id="detail-title">Master</h2>
+                <p id="detail-meta" class="muted"></p>
+            </div>
+            <button id="delete-master" class="btn danger" type="button">Delete master</button>
+        </div>
+        <h3>Columns</h3>
+        <div id="columns" class="stack"></div>
+        <form id="add-column-form" class="stack">
+            <h3>Add a column</h3>
+            <table class="column-table">
+                <tbody id="extra-column"></tbody>
+            </table>
+            <button class="btn secondary" type="submit">Add column</button>
+        </form>
+        <h3>Parent</h3>
+        <div id="parent-view"></div>
+        <h3>Records</h3>
+        <form id="record-form" class="stack"></form>
+        <div id="records"></div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/masters.js" asp-append-version="true"></script>
+}

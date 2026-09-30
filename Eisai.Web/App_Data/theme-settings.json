@@ -1,0 +1,12 @@
+{
+  "ApplicationName": "Eisai",
+  "Subtitle": "Safety \u0026 Compliance",
+  "LoaderWidth": 100,
+  "LoaderHeight": 100,
+  "LoaderUrl": "/uploads/theme/loader.gif?v=1790693142811",
+  "ExpandedLogoUrl": "/uploads/theme/logo-expanded.png?v=1790691577778",
+  "CollapsedLogoUrl": "/uploads/theme/logo-collapsed.png?v=1790592653433",
+  "CollapseEnabled": true,
+  "MenuOrder": [],
+  "Mark": "EIS"
+}

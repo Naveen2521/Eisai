@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="E:/src/Eisai.Api/Eisai.Api.csproj" />
+    <Project Path="E:/src/Eisai.Domain/Eisai.Domain.csproj" />
+    <Project Path="E:/src/Eisai.Infrastructure/Eisai.Infrastructure.csproj" />
+    <Project Path="E:/src/Eisai.Web/Eisai.Web.csproj" />
+    <Project Path="EISAI.Application/Eisai.Application.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,85 @@
+@{
+    ViewData["Title"] = "Master records";
+    ViewData["ShowHeaderTitle"] = false;
+}
+
+<section class="masters-page">
+    <p class="crumb"><a asp-controller="Home" asp-action="Index">Home</a><span><a asp-action="Index">Masters</a></span><span id="crumb-name">Records</span></p>
+    <div class="masters-head">
+        <div>
+            <h2 id="record-title">Records</h2>
+            <p id="record-hint" class="muted">Records for this master.</p>
+        </div>
+        <button id="add-record" class="btn" type="button" hidden>Add</button>
+    </div>
+
+    <div class="form-card grid-card">
+        <div class="grid-toolbar">
+            <label class="search-field">
+                <span class="sr-only">Search records</span>
+                <input id="record-search" type="search" placeholder="Search all columns..." />
+            </label>
+            <label class="rows-field">Rows per page
+                <select id="page-size">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="all">All</option>
+                </select>
+            </label>
+            <div class="toolbar-end">
+            <div class="column-box">
+                <button id="column-toggle" class="btn secondary" type="button">Columns</button>
+                <div id="column-menu" class="column-menu" hidden></div>
+            </div>
+            <div class="export-box">
+                <button id="export-toggle" class="btn secondary" type="button">Export</button>
+                <div id="export-menu" class="export-menu" hidden>
+                    <button type="button" data-export="excel">Excel</button>
+                    <button type="button" data-export="pdf">PDF</button>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="master-grid">
+                <thead id="record-head"></thead>
+                <tbody id="record-grid"></tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <span id="page-label" class="muted">Showing 0 records</span>
+            <div class="page-controls">
+                <button id="page-prev" class="page-arrow" type="button" aria-label="Previous page">‹</button>
+                <span id="page-current">1</span>
+                <button id="page-next" class="page-arrow" type="button" aria-label="Next page">›</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<dialog id="record-dialog" class="record-dialog">
+    <form id="record-form">
+        <div class="dialog-head">
+            <h3 id="form-title">Add</h3>
+            <button class="icon-btn" type="button" data-close-form aria-label="Close">Close</button>
+        </div>
+        <div id="pending-box" class="pending-box" hidden>
+            <p id="pending-label" class="pending-label">Added, waiting to save</p>
+            <ul id="pending-list" class="pending-list"></ul>
+        </div>
+        <div id="form-fields" class="field-grid"></div>
+        <p id="form-error" class="alert-error" hidden></p>
+        <div class="dialog-actions">
+            <button class="btn secondary" type="button" data-close-form>Cancel</button>
+            <button id="form-update" class="btn secondary" type="button" hidden>Update</button>
+            <button id="form-more" class="btn secondary" type="button">Add more</button>
+            <button id="form-save" class="btn" type="submit" formnovalidate>Save</button>
+        </div>
+    </form>
+</dialog>
+
+@section Scripts {
+    <script src="~/js/export-document.js" asp-append-version="true"></script>
+    <script src="~/js/master-records.js" asp-append-version="true"></script>
+}

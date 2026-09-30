@@ -1,0 +1,88 @@
+@{
+    var appTheme = ThemeStore.Current;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="api-base" content="@Configuration["ApiBaseUrl"]" />
+    <title>@(ViewData["Title"] ?? "EISAI")</title>
+    <link rel="stylesheet" href="~/lib/remixicon/remixicon.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/notiflix/notiflix.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        document.documentElement.dataset.theme = localStorage.getItem("dar-theme") || "light";
+    </script>
+</head>
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="sidebar-head">
+                <a class="brand" asp-controller="Home" asp-action="Index">
+                    @if (string.IsNullOrEmpty(appTheme.ExpandedLogoUrl))
+                    {
+                        <span class="brand-mark brand-mark-expanded">@appTheme.Mark</span>
+                    }
+                    else
+                    {
+                        <img class="brand-logo brand-logo-expanded" src="@appTheme.ExpandedLogoUrl" alt="" />
+                    }
+                    @if (appTheme.CollapseEnabled)
+                    {
+                        @if (string.IsNullOrEmpty(appTheme.CollapsedLogoUrl))
+                        {
+                            <span class="brand-mark brand-mark-collapsed">@appTheme.Mark</span>
+                        }
+                        else
+                        {
+                            <img class="brand-logo brand-logo-collapsed" src="@appTheme.CollapsedLogoUrl" alt="" />
+                        }
+                    }
+                </a>
+                @if (appTheme.CollapseEnabled)
+                {
+                    <button class="collapse" type="button" id="collapse-nav" aria-label="Collapse sidebar">
+                        <i class="ri-arrow-left-double-line collapse-when-open" aria-hidden="true"></i>
+                        <i class="ri-arrow-right-double-line collapse-when-closed" aria-hidden="true"></i>
+                    </button>
+                }
+            </div>
+            <nav class="menu">
+                <div id="menu-root"></div>
+            </nav>
+        </aside>
+        <div class="main">
+            <header class="topbar">
+                <div>
+                    @if (ViewData["ShowHeaderTitle"] as bool? != false)
+                    {
+                        <h1 class="top-title">@ViewData["Title"]</h1>
+                    }
+                </div>
+                <div class="top-tools">
+                    <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme"><i class="ri-sun-line"></i></button>
+                    <button class="icon-btn" id="notice-btn" type="button" aria-label="Notifications"><i class="ri-notification-3-line"></i></button>
+                    <div class="user">
+                        <span class="avatar">AR</span>
+                        <span>
+                            <strong>Arun</strong>
+                            <small>Safety Officer</small>
+                        </span>
+                    </div>
+                </div>
+            </header>
+            <main class="content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <div id="app-loader" hidden style="--loader-w: @(appTheme.LoaderWidth)px; --loader-h: @(appTheme.LoaderHeight)px;">
+        <img src="@appTheme.LoaderUrl" alt="Loading" />
+    </div>
+    <script>window.darMenuOrder = @Html.Raw(ThemeStore.MenuOrderJson);</script>
+    <script src="~/lib/notiflix/notiflix.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

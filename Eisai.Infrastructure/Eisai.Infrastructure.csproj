@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Authentication\" />
+    <Folder Include="BackgroundJobs\" />
+    <Folder Include="Caching\" />
+    <Folder Include="Configuration\" />
+    <Folder Include="ExternalServices\" />
+    <Folder Include="Logging\" />
+    <Folder Include="Persistence\Commands\" />
+    <Folder Include="Persistence\Queries\" />
+    <Folder Include="Persistence\Transactions\" />
+    <Folder Include="Storage\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.89" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EISAI.Application\EISAI.Application.csproj" />
+    <ProjectReference Include="..\Eisai.Domain\Eisai.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

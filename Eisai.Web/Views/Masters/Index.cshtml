@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Masters";
+    ViewData["ShowHeaderTitle"] = false;
+}
+
+<section class="masters-page">
+    <p class="crumb"><a asp-controller="Home" asp-action="Index">Home</a><span>Masters</span></p>
+    <div class="masters-head">
+        <div>
+            <h2>Masters</h2>
+@*             <p class="muted">Masters already created, such as Country and City.</p>
+ *@        </div>
+        <a class="btn create-master" asp-controller="Masters" asp-action="Create">+ Create Master</a>
+    </div>
+
+    <div class="form-card grid-card">
+        <div class="grid-toolbar">
+            <label class="search-field">
+                <span class="sr-only">Search all columns</span>
+                <input id="master-search" type="search" placeholder="Search all columns..." />
+            </label>
+            <label class="rows-field">Rows per page
+                <select id="page-size">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="all">All</option>
+                </select>
+            </label>
+            <div class="export-box">
+                <button id="export-toggle" class="btn secondary" type="button">Export</button>
+                <div id="export-menu" class="export-menu" hidden>
+                    <button type="button" data-export="excel">Excel</button>
+                    <button type="button" data-export="pdf">PDF</button>
+                </div>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="master-grid">
+                <thead>
+                    <tr>
+                        <th class="col-no">#</th>
+                        <th><button type="button" data-sort="name">Master</button></th>
+                        <th><button type="button" data-sort="prefix">Prefix</button></th>
+                        <th><button type="button" data-sort="table">Table</button></th>
+                        <th><button type="button" data-sort="heading">Heading</button></th>
+                        <th><button type="button" data-sort="sub">Sub heading</button></th>
+                        <th><button type="button" data-sort="parent">Parent</button></th>
+                        <th>Actions</th>
+                    </tr>
+                    <tr class="filter-row">
+                        <th></th>
+                        <th><input data-filter="name" placeholder="Search..." /></th>
+                        <th><input data-filter="prefix" placeholder="Search..." /></th>
+                        <th><input data-filter="table" placeholder="Search..." /></th>
+                        <th><select data-filter="heading"><option value="">Search...</option></select></th>
+                        <th><select data-filter="sub"><option value="">Search...</option></select></th>
+                        <th><select data-filter="parent"><option value="">Search...</option></select></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="master-grid"></tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <span id="page-label" class="muted">Showing 0 masters</span>
+            <div class="page-controls">
+                <button id="page-prev" class="page-arrow" type="button" aria-label="Previous page">‹</button>
+                <span id="page-current">1</span>
+                <button id="page-next" class="page-arrow" type="button" aria-label="Next page">›</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/export-document.js" asp-append-version="true"></script>
+    <script src="~/js/masters-grid.js" asp-append-version="true"></script>
+}

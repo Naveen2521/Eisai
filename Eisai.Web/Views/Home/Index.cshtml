@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<section class="hero">
+    <div>
+        <p class="eyebrow" id="today">Today</p>
+        <h2 id="greeting">Good morning</h2>
+        <p>Have a safe day at the plant. Continue open work, or start the next inspection from here.</p>
+        <div class="hero-actions">
+            <a class="btn" href="#" data-soon>My Tasks</a>
+            <a class="btn secondary" href="#" data-soon>Start Inspection</a>
+            <a class="btn secondary" href="#" data-soon>Report Incident</a>
+        </div>
+    </div>
+</section>
+
+<section class="home-grid">
+    <article class="card span-2">
+        <header class="card-head">
+            <h3>Continue where you left off</h3>
+        </header>
+        <button class="task" type="button" data-soon>
+            <span class="dot teal"></span>
+            <span>
+                <strong>Line Audit L2</strong>
+                <small>Packaging · In progress</small>
+            </span>
+        </button>
+        <button class="task" type="button" data-soon>
+            <span class="dot amber"></span>
+            <span>
+                <strong>Permit to Work</strong>
+                <small>Utilities · Waiting approval</small>
+            </span>
+        </button>
+    </article>
+    <article class="card">
+        <header class="card-head">
+            <h3>Tasks assigned to you</h3>
+        </header>
+        <ul class="plain">
+            <li>Training acknowledgement due today</li>
+            <li>Audit checklist for Line 3</li>
+            <li>Incident review pending closure</li>
+        </ul>
+    </article>
+    <article class="card">
+        <header class="card-head">
+            <h3>Recent activity</h3>
+        </header>
+        <ul class="plain">
+            <li>Inspection submitted for Warehouse A</li>
+            <li>CAPA assigned to maintenance</li>
+            <li>Audit schedule published</li>
+        </ul>
+    </article>
+    <article class="card">
+        <header class="card-head">
+            <h3>Announcements</h3>
+        </header>
+        <p class="muted">Weekly safety stand-up is at 09:30 in the main hall. Bring open permits from the last shift.</p>
+    </article>
+    <article class="card span-2">
+        <header class="card-head">
+            <h3>Modules</h3>
+        </header>
+        <div class="modules">
+            <button type="button" data-soon>Forms</button>
+            <button type="button" data-soon>Inspections</button>
+            <button type="button" data-soon>Audits</button>
+            <button type="button" data-soon>Incidents</button>
+            <button type="button" data-soon>CAPA</button>
+            <button type="button" data-soon>Reports</button>
+        </div>
+    </article>
+</section>
+<script src="~/js/home.js" asp-append-version="true"></script>

@@ -1,0 +1,606 @@
+@model Eisai.Web.Theme.ThemePageModel
+@{
+    var settings = Model.Settings;
+}
+
+<section class="masters-page">
+    <p class="crumb"><a asp-controller="Home" asp-action="Index">Home</a><span>Theme</span></p>
+    <div class="masters-head">
+        <div>
+            <h2>Theme</h2>
+            <p class="muted">Update the loader and the sidebar logos.</p>
+        </div>
+    </div>
+
+    @if (Model.Errors.Count > 0)
+    {
+        <ul class="alert-error">
+            @foreach (var error in Model.Errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    }
+
+    <form method="post" enctype="multipart/form-data" class="stack">
+        @Html.AntiForgeryToken()
+        <div class="form-card">
+            <h3>Loader</h3>
+            <p class="muted">GIF only. This image shows while a page is working.</p>
+            <div class="grid-2">
+                <label>Loader file
+                    <input type="file" name="loader" accept=".gif,image/gif" data-preview="#loader-preview" />
+                </label>
+                <div class="theme-preview">
+                    <img id="loader-preview" src="@settings.LoaderUrl" alt="Current loader" width="@settings.LoaderWidth" height="@settings.LoaderHeight" />
+                </div>
+            </div>
+            <div class="grid-2">
+                <label>Width (px)
+                    <input name="loaderWidth" type="number" min="40" max="400" required value="@settings.LoaderWidth" data-size="width" />
+                </label>
+                <label>Height (px)
+                    <input name="loaderHeight" type="number" min="40" max="400" required value="@settings.LoaderHeight" data-size="height" />
+                </label>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <h3>Sidebar logo</h3>
+            <p class="muted">PNG only. Turn collapse off to hide the sidebar button and the collapsed logo.</p>
+            <label>Collapse
+                <select name="collapseEnabled" id="collapse-enabled">
+                    @if (settings.CollapseEnabled)
+                    {
+                        <option value="true" selected>Needed</option>
+                        <option value="false">Not needed</option>
+                    }
+                    else
+                    {
+                        <option value="true">Needed</option>
+                        <option value="false" selected>Not needed</option>
+                    }
+                </select>
+            </label>
+            <div class="grid-2">
+                <label>Logo
+                    <input type="file" name="expandedLogo" accept=".png,image/png" data-preview="#logo-expanded" />
+                </label>
+                <div class="theme-preview">
+                    @if (string.IsNullOrEmpty(settings.ExpandedLogoUrl))
+                    {
+                        <span class="brand-mark">@settings.Mark</span>
+                        <img id="logo-expanded" alt="Logo" class="logo-preview logo-preview-expanded" hidden />
+                    }
+                    else
+                    {
+                        <img id="logo-expanded" src="@settings.ExpandedLogoUrl" alt="Logo" class="logo-preview logo-preview-expanded" />
+                    }
+                </div>
+            </div>
+            <div id="collapse-options" class="grid-2" @(settings.CollapseEnabled ? null : "hidden")>
+                <label>Collapsed logo
+                    <input type="file" name="collapsedLogo" accept=".png,image/png" data-preview="#logo-collapsed" />
+                </label>
+                <div class="theme-preview">
+                    @if (string.IsNullOrEmpty(settings.CollapsedLogoUrl))
+                    {
+                        <span class="brand-mark">@settings.Mark</span>
+                        <img id="logo-collapsed" alt="Collapsed logo" class="logo-preview" hidden />
+                    }
+                    else
+                    {
+                        <img id="logo-collapsed" src="@settings.CollapsedLogoUrl" alt="Collapsed logo" class="logo-preview" />
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card order-card">
+            <div class="order-head">
+                <div>
+                    <h3>Sidebar order</h3>
+                    <p class="muted">This is the sidebar order. Move an item, then save. The sidebar keeps that order.</p>
+                </div>
+                <div class="order-head-actions">
+                    <button class="btn secondary" type="button" id="reset-order"><i class="ri-refresh-line" aria-hidden="true"></i> Reset to Default</button>
+                    <button class="btn" type="submit"><i class="ri-save-line" aria-hidden="true"></i> Save theme</button>
+                </div>
+            </div>
+            <ul id="menu-order" class="order-tree"></ul>
+            <input type="hidden" name="menuOrder" id="menu-order-input" value="@System.Text.Json.JsonSerializer.Serialize(settings.MenuOrder, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })" />
+            <p class="order-hint"><i class="ri-information-line" aria-hidden="true"></i> Drag and drop items to reorder or change hierarchy.</p>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <script>
+        @if (Model.Saved)
+        {
+            <text>dar.ok("Theme saved.");</text>
+        }
+        document.querySelectorAll("[data-preview]").forEach(input => {
+            input.addEventListener("change", () => {
+                const file = input.files && input.files[0];
+                const img = document.querySelector(input.dataset.preview);
+                if (!file || !img) {
+                    return;
+                }
+                img.hidden = false;
+                img.src = URL.createObjectURL(file);
+                const mark = img.parentElement.querySelector(".brand-mark");
+                if (mark) {
+                    mark.hidden = true;
+                }
+            });
+        });
+        document.querySelector("#collapse-enabled")?.addEventListener("change", event => {
+            const options = document.querySelector("#collapse-options");
+            if (options) {
+                options.hidden = event.target.value !== "true";
+            }
+        });
+        const orderList = document.querySelector("#menu-order");
+        const orderInput = document.querySelector("#menu-order-input");
+        const orderForm = orderList?.closest("form");
+        const maxDepth = 4;
+        let rawOrder = [];
+        try {
+            rawOrder = JSON.parse(orderInput?.value || "[]");
+        } catch {
+            rawOrder = [];
+        }
+        let hiddenIds = new Set(rawOrder.filter(item => item?.id === "__hidden__").flatMap(item => (item.children ?? []).map(child => child.id)));
+        let editorNodes = [];
+        let collapsed = new Set();
+        let editingId = null;
+        let changed = false;
+        let natural = rawOrder.length === 0;
+        let painted = false;
+        let dragId = null;
+        let dropState = null;
+
+        function findNode(nodes, id) {
+            for (const node of nodes) {
+                if (node.id === id) {
+                    return node;
+                }
+                const found = findNode(node.children ?? [], id);
+                if (found) {
+                    return found;
+                }
+            }
+            return null;
+        }
+
+        function nodeDepth(nodes, id, depth = 0) {
+            for (const node of nodes) {
+                if (node.id === id) {
+                    return depth;
+                }
+                const found = nodeDepth(node.children ?? [], id, depth + 1);
+                if (found >= 0) {
+                    return found;
+                }
+            }
+            return -1;
+        }
+
+        function subtreeDepth(node) {
+            const children = node.children ?? [];
+            if (children.length === 0) {
+                return 0;
+            }
+            return 1 + Math.max(...children.map(subtreeDepth));
+        }
+
+        function containsNode(node, id) {
+            return (node.children ?? []).some(child => child.id === id || containsNode(child, id));
+        }
+
+        function cleanLabel(value, fallback) {
+            const text = String(value ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
+            return text || fallback;
+        }
+
+        function commitEditing() {
+            const input = orderList?.querySelector(".order-label-input");
+            if (!input) {
+                editingId = null;
+                return;
+            }
+            const node = findNode(editorNodes, input.closest(".order-item")?.dataset.id);
+            if (node) {
+                const next = cleanLabel(input.value, node.label);
+                if (next !== node.label) {
+                    node.label = next;
+                    markChanged();
+                }
+            }
+            editingId = null;
+        }
+
+        function orderIcon(node) {
+            const name = node.routeLabel || node.label;
+            if (node.kind === "home" || name === "Home") {
+                return ["ri-home-5-fill", "teal"];
+            }
+            if (name === "Super Admin Operations") {
+                return ["ri-function-line", "teal"];
+            }
+            if (name === "Masters") {
+                return ["ri-settings-3-line", "ink"];
+            }
+            if (name === "Theme" || node.kind === "link") {
+                return ["ri-menu-line", "ink"];
+            }
+            if (node.kind === "master") {
+                return ["ri-file-text-line", "muted"];
+            }
+            return ["ri-hexagon-line", "teal"];
+        }
+
+        function showPlus(node) {
+            return node.kind === "heading" || node.kind === "sub" || node.kind === "group" || (node.children ?? []).length > 0;
+        }
+
+        function iconButton(className, icon, label, onClick) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = className;
+            button.setAttribute("aria-label", label);
+            const mark = document.createElement("i");
+            mark.className = icon;
+            mark.setAttribute("aria-hidden", "true");
+            button.append(mark);
+            button.addEventListener("click", event => {
+                event.stopPropagation();
+                onClick();
+            });
+            return button;
+        }
+
+        function paintOrder(nodes, host) {
+            host.replaceChildren();
+            nodes.forEach(node => {
+                const item = document.createElement("li");
+                item.className = "order-item";
+                item.dataset.id = node.id;
+                item.draggable = true;
+                if (collapsed.has(node.id)) {
+                    item.classList.add("is-collapsed");
+                }
+                const row = document.createElement("div");
+                row.className = "order-row";
+                const grip = document.createElement("span");
+                grip.className = "order-grip";
+                grip.setAttribute("aria-hidden", "true");
+                const gripIcon = document.createElement("i");
+                gripIcon.className = "ri-draggable";
+                grip.append(gripIcon);
+                const [iconClass, tone] = orderIcon(node);
+                const icon = document.createElement("span");
+                icon.className = `order-ico ${tone}`;
+                icon.setAttribute("aria-hidden", "true");
+                const iconMark = document.createElement("i");
+                iconMark.className = iconClass;
+                icon.append(iconMark);
+                row.append(grip, icon);
+                if (editingId === node.id) {
+                    const input = document.createElement("input");
+                    input.className = "order-label-input";
+                    input.value = node.label;
+                    input.maxLength = 80;
+                    input.setAttribute("aria-label", `Name for ${node.label}`);
+                    input.addEventListener("keydown", event => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            commitEditing();
+                            paint();
+                        } else if (event.key === "Escape") {
+                            editingId = null;
+                            paint();
+                        }
+                    });
+                    input.addEventListener("blur", () => {
+                        commitEditing();
+                        window.setTimeout(() => {
+                            if (!orderList.contains(document.activeElement)) {
+                                paint();
+                            }
+                        }, 0);
+                    });
+                    row.append(input);
+                    window.setTimeout(() => {
+                        input.focus();
+                        input.select();
+                    }, 0);
+                } else {
+                    const label = document.createElement("span");
+                    label.className = "order-label";
+                    label.textContent = node.label;
+                    row.append(label);
+                }
+                const children = node.children ?? [];
+                if (children.length > 0) {
+                    const open = !collapsed.has(node.id);
+                    row.append(iconButton("order-chevron", open ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line", open ? `Collapse ${node.label}` : `Expand ${node.label}`, () => {
+                        commitEditing();
+                        if (collapsed.has(node.id)) {
+                            collapsed.delete(node.id);
+                        } else {
+                            collapsed.add(node.id);
+                        }
+                        paint();
+                    }));
+                }
+                const actions = document.createElement("div");
+                actions.className = "order-actions";
+                if (showPlus(node)) {
+                    actions.append(iconButton("order-add", "ri-add-line", `Add a group under ${node.label}`, () => addGroup(node.id)));
+                }
+                actions.append(iconButton("order-edit", "ri-pencil-line", `Rename ${node.label}`, () => {
+                    commitEditing();
+                    editingId = node.id;
+                    paint();
+                }));
+                actions.append(iconButton("order-delete", "ri-delete-bin-line", `Remove ${node.label}`, () => removeItem(node.id)));
+                row.append(actions);
+                item.append(row);
+                if (children.length > 0) {
+                    const nested = document.createElement("ul");
+                    nested.className = "order-children";
+                    paintOrder(children, nested);
+                    item.append(nested);
+                }
+                item.addEventListener("dragstart", event => {
+                    if (event.target.closest(".order-item") !== item) {
+                        return;
+                    }
+                    event.stopPropagation();
+                    if (event.target.closest("button, input")) {
+                        event.preventDefault();
+                        return;
+                    }
+                    dragId = node.id;
+                    dropState = null;
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", node.id);
+                    item.classList.add("is-dragging");
+                });
+                host.append(item);
+            });
+        }
+
+        function paint() {
+            if (!orderList) {
+                return;
+            }
+            paintOrder(editorNodes, orderList);
+            painted = true;
+        }
+
+        function showOrder(masters) {
+            if (!orderList || !dar.menuNodes || changed) {
+                return;
+            }
+            editorNodes = dar.menuNodes(masters, natural ? [] : rawOrder);
+            paint();
+        }
+
+        function markChanged() {
+            changed = true;
+            natural = false;
+        }
+
+        function addGroup(parentId) {
+            commitEditing();
+            const parent = findNode(editorNodes, parentId);
+            if (!parent || nodeDepth(editorNodes, parentId) >= maxDepth) {
+                dar.warn("This item cannot hold another group.");
+                return;
+            }
+            const id = `group:${crypto.randomUUID?.() || `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`}`;
+            parent.children = parent.children ?? [];
+            parent.children.push({ id, label: "New group", kind: "group", routeLabel: "New group", children: [] });
+            collapsed.delete(parentId);
+            editingId = id;
+            markChanged();
+            paint();
+        }
+
+        function removeItem(id) {
+            commitEditing();
+            const node = findNode(editorNodes, id);
+            if (!node) {
+                return;
+            }
+            const message = (node.children ?? []).length
+                ? `Remove ${node.label}? Items inside it stay one level up.`
+                : `Remove ${node.label} from the sidebar?`;
+            if (!window.confirm(message)) {
+                return;
+            }
+            const removed = removeNode(editorNodes, id);
+            if (!removed) {
+                return;
+            }
+            if (!removed.id.startsWith("group:")) {
+                hiddenIds.add(removed.id);
+            }
+            collapsed.delete(id);
+            markChanged();
+            paint();
+        }
+
+        function removeNode(nodes, id) {
+            for (let index = 0; index < nodes.length; index += 1) {
+                if (nodes[index].id === id) {
+                    const [removed] = nodes.splice(index, 1);
+                    nodes.splice(index, 0, ...(removed.children ?? []));
+                    removed.children = [];
+                    return removed;
+                }
+                const found = removeNode(nodes[index].children ?? [], id);
+                if (found) {
+                    return found;
+                }
+            }
+            return null;
+        }
+
+        function detach(nodes, id) {
+            for (let index = 0; index < nodes.length; index += 1) {
+                if (nodes[index].id === id) {
+                    return nodes.splice(index, 1)[0];
+                }
+                const found = detach(nodes[index].children ?? [], id);
+                if (found) {
+                    return found;
+                }
+            }
+            return null;
+        }
+
+        function insertRelative(nodes, targetId, node, where) {
+            for (let index = 0; index < nodes.length; index += 1) {
+                if (nodes[index].id === targetId) {
+                    if (where === "before") {
+                        nodes.splice(index, 0, node);
+                    } else if (where === "after") {
+                        nodes.splice(index + 1, 0, node);
+                    } else {
+                        nodes[index].children = nodes[index].children ?? [];
+                        nodes[index].children.push(node);
+                    }
+                    return true;
+                }
+                if (insertRelative(nodes[index].children ?? [], targetId, node, where)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function canDrop(dragged, targetId, where) {
+            const depth = nodeDepth(editorNodes, targetId);
+            if (depth < 0) {
+                return false;
+            }
+            return depth + (where === "inside" ? 1 : 0) + subtreeDepth(dragged) <= maxDepth;
+        }
+
+        function clearDrop() {
+            orderList?.querySelectorAll(".drop-before, .drop-after, .drop-inside").forEach(row => {
+                row.classList.remove("drop-before", "drop-after", "drop-inside");
+            });
+        }
+
+        orderList?.addEventListener("dragover", event => {
+            if (!dragId) {
+                return;
+            }
+            const row = event.target.closest?.(".order-row");
+            const item = row?.closest(".order-item");
+            if (!row || !item || item.dataset.id === dragId) {
+                return;
+            }
+            const dragged = findNode(editorNodes, dragId);
+            if (!dragged || containsNode(dragged, item.dataset.id)) {
+                return;
+            }
+            const rect = row.getBoundingClientRect();
+            const y = event.clientY - rect.top;
+            let where = y < rect.height * 0.28 ? "before" : y > rect.height * 0.72 ? "after" : "inside";
+            if (!canDrop(dragged, item.dataset.id, where)) {
+                where = y < rect.height / 2 ? "before" : "after";
+            }
+            if (!canDrop(dragged, item.dataset.id, where)) {
+                return;
+            }
+            event.preventDefault();
+            clearDrop();
+            row.classList.add(`drop-${where}`);
+            dropState = { id: item.dataset.id, where };
+        });
+
+        orderList?.addEventListener("drop", event => {
+            if (!dragId || !dropState) {
+                return;
+            }
+            event.preventDefault();
+            const dragged = detach(editorNodes, dragId);
+            if (dragged) {
+                insertRelative(editorNodes, dropState.id, dragged, dropState.where);
+                if (dropState.where === "inside") {
+                    collapsed.delete(dropState.id);
+                }
+                markChanged();
+            }
+            dragId = null;
+            dropState = null;
+            clearDrop();
+            paint();
+        });
+
+        orderList?.addEventListener("dragend", () => {
+            clearDrop();
+            orderList.querySelectorAll(".is-dragging").forEach(item => item.classList.remove("is-dragging"));
+            dragId = null;
+            dropState = null;
+        });
+
+        document.querySelector("#reset-order")?.addEventListener("click", () => {
+            rawOrder = [];
+            hiddenIds = new Set();
+            collapsed = new Set();
+            editingId = null;
+            changed = false;
+            natural = true;
+            editorNodes = dar.menuNodes(dar.latestMasters ?? [], []);
+            paint();
+            dar.info("Sidebar order reset. Save the theme to keep it.");
+        });
+
+        document.addEventListener("dar-menu", () => {
+            if (dar.latestMasters) {
+                showOrder(dar.latestMasters);
+            }
+        });
+
+        orderForm?.addEventListener("submit", () => {
+            if (!orderInput || !painted) {
+                return;
+            }
+            commitEditing();
+            if (natural && !changed) {
+                orderInput.value = "[]";
+                return;
+            }
+            const strip = nodes => nodes.map(node => ({
+                id: node.id,
+                label: node.label,
+                children: strip(node.children ?? [])
+            }));
+            const tree = strip(editorNodes);
+            const hidden = [...hiddenIds].filter(id => !findNode(editorNodes, id));
+            if (hidden.length > 0) {
+                tree.push({ id: "__hidden__", children: hidden.map(id => ({ id, children: [] })) });
+            }
+            orderInput.value = JSON.stringify(tree);
+        });
+
+        if (dar.latestMasters) {
+            showOrder(dar.latestMasters);
+        }
+
+        const preview = document.querySelector("#loader-preview");
+        document.querySelectorAll("[data-size]").forEach(input => {
+            input.addEventListener("input", () => {
+                const size = Math.min(400, Math.max(40, Number(input.value) || 40));
+                preview.style[input.dataset.size] = size + "px";
+            });
+        });
+    </script>
+}
